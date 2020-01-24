@@ -1091,6 +1091,7 @@ func addAuthConfigResources(b *plan.Builder, authConfigMap *v1.ConfigMap, authTy
 const (
 	centOS = "centos"
 	ubuntu = "ubuntu"
+	rhel = "rhel"
 )
 
 // Identify uses the provided SSH client to identify the operating system of
@@ -1101,7 +1102,7 @@ func Identify(sshClient *ssh.Client) (*OS, error) {
 		return nil, err
 	}
 	switch osID {
-	case centOS:
+	case centOS, rhel:
 		return &OS{Name: osID, runner: &sudo.Runner{Runner: sshClient}, PkgType: resource.PkgTypeRPM}, nil
 	case ubuntu:
 		return &OS{Name: osID, runner: &sudo.Runner{Runner: sshClient}, PkgType: resource.PkgTypeDeb}, nil
