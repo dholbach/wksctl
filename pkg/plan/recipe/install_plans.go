@@ -35,6 +35,7 @@ func BuildBasePlan(pkgType resource.PkgType) plan.Resource {
 	case resource.PkgTypeRHEL:
 		// Package manager features
 		b.AddResource("install:yum-utils", &resource.RPM{Name: "yum-utils"})
+		b.AddResource("install:container-selinux", &resource.RPM{Name: "container-selinux"})
 		b.AddResource("install:yum-versionlock", &resource.RPM{Name: "yum-plugin-versionlock"})
 
 		// Device Mapper
@@ -109,7 +110,9 @@ func BuildCRIPlan(criSpec *baremetalspecv1.ContainerRuntime, cfg *envcfg.EnvSpec
 
 	// Docker runtime
 	switch pkgType {
-	case resource.PkgTypeRPM, resource.PkgTypeRHEL:
+	case resource.PkgTypeRPM:
+		b.AddResource("install:docker", &resource.RPM{Name: criSpec.Package, Version: criSpec.Version})
+	case resource.PkgTypeRHEL:
 		b.AddResource("install:docker", &resource.RPM{Name: criSpec.Package, Version: criSpec.Version})
 	case resource.PkgTypeDeb:
 		// TODO(michal): Use the official docker.com repo
