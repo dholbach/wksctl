@@ -35,19 +35,14 @@ func BuildBasePlan(pkgType resource.PkgType) plan.Resource {
 	case resource.PkgTypeRHEL:
 		// Package manager features
 		b.AddResource("install:yum-utils", &resource.RPM{Name: "yum-utils"})
-		b.AddResource("install:container-selinux", &resource.RPM{Name: "container-selinux"})
 		b.AddResource("install:yum-versionlock", &resource.RPM{Name: "yum-plugin-versionlock"})
 
 		// Device Mapper
 		b.AddResource("install:device-mapper-persistent-data", &resource.RPM{Name: "device-mapper-persistent-data"})
 		b.AddResource("install:lvm2", &resource.RPM{Name: "lvm2"})
 
-		// This step is required for RHEL distros as it enables container-selinux dependency
-		// Reference: https://docs.docker.com/ee/docker-ee/rhel/
-		b.AddResource(
-			"yum-config-manager:enable-extras",
-			&resource.Run{Script: object.String("yum-config-manager --enable rhel-7-server-extras-rpms")},
-		)
+		// RHEL requires installation of container-selinux
+		b.AddResource("install:container-selinux", &resource.RPM{Name: "container-selinux"})
 
 	case resource.PkgTypeDeb:
 		// Package manager features
