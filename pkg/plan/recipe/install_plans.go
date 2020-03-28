@@ -2,7 +2,6 @@ package recipe
 
 import (
 	"fmt"
-
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
@@ -23,7 +22,7 @@ func BuildBasePlan(pkgType resource.PkgType) plan.Resource {
 	b := plan.NewBuilder()
 
 	switch pkgType {
-	case resource.PkgTypeRPM:
+	case resource.PkgTypeRPM, resource.PkgTypeRHEL:
 		// Package manager features
 		b.AddResource("install:yum-utils", &resource.RPM{Name: "yum-utils"})
 		b.AddResource("install:yum-versionlock", &resource.RPM{Name: "yum-plugin-versionlock"})
@@ -31,18 +30,10 @@ func BuildBasePlan(pkgType resource.PkgType) plan.Resource {
 		// Device Mapper
 		b.AddResource("install:device-mapper-persistent-data", &resource.RPM{Name: "device-mapper-persistent-data"})
 		b.AddResource("install:lvm2", &resource.RPM{Name: "lvm2"})
-
-	case resource.PkgTypeRHEL:
-		// Package manager features
-		b.AddResource("install:yum-utils", &resource.RPM{Name: "yum-utils"})
-		b.AddResource("install:yum-versionlock", &resource.RPM{Name: "yum-plugin-versionlock"})
-
-		// Device Mapper
-		b.AddResource("install:device-mapper-persistent-data", &resource.RPM{Name: "device-mapper-persistent-data"})
-		b.AddResource("install:lvm2", &resource.RPM{Name: "lvm2"})
-
-		// RHEL requires installation of container-selinux
-		b.AddResource("install:container-selinux", &resource.RPM{Name: "container-selinux"})
+		if pkgType == resource.PkgTypeRHEL {
+			// RHEL requires installation of container-selinux
+			b.AddResource("install:container-selinux", &resource.RPM{Name: "container-selinux"})
+		}
 
 	case resource.PkgTypeDeb:
 		// Package manager features
@@ -105,9 +96,7 @@ func BuildCRIPlan(criSpec *baremetalspecv1.ContainerRuntime, cfg *envcfg.EnvSpec
 
 	// Docker runtime
 	switch pkgType {
-	case resource.PkgTypeRPM:
-		b.AddResource("install:docker", &resource.RPM{Name: criSpec.Package, Version: criSpec.Version})
-	case resource.PkgTypeRHEL:
+	case resource.PkgTypeRPM, resource.PkgTypeRHEL:
 		b.AddResource("install:docker", &resource.RPM{Name: criSpec.Package, Version: criSpec.Version})
 	case resource.PkgTypeDeb:
 		// TODO(michal): Use the official docker.com repo
